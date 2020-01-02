@@ -26,7 +26,7 @@
 </code></pre></div><p><span class=image-container><span class=link><a target=_blank rel="noopener noreferrer" href=03.png><img class=img src=03.png alt></a></span><span class=caption><span class=title>flex 容器设置负数 margin</span></span></span></p><h3 id=heading>避免外边距合并问题</h3><p>设置 <code>margin</code> 的时候需要避免外边距合并问题，否则会改变父容器的布局。</p><p>解决方法很简单，父容器只要有 <code>border</code> 就可以了，也可以是一个透明的边框：</p><div class=highlight><pre class=chroma><code class=language-css data-lang=css><span class=p>.</span><span class=nc>box</span> <span class=p>{</span>
     <span class=k>border</span><span class=p>:</span> <span class=mi>0</span> <span class=kc>solid</span> <span class=kc>transparent</span><span class=p>;</span>
 <span class=p>}</span>
-</code></pre></div><h2 id=demohtml>Demo.html</h2><p>这篇文章测试的源码</p><div class=highlight><pre class=chroma><code class=language-html data-lang=html><span class=p>&lt;</span><span class=nt>html</span><span class=p></span><span class=p>&gt;</span>
+</code></pre></div><h2 id=demohtml>Demo.html</h2><p>这篇文章测试的源码, 点击<a href=https://codepen.io/cntrump/pen/oNgGVzK target=_blank>这里运行</a></p><div class=highlight><pre class=chroma><code class=language-html data-lang=html><span class=p>&lt;</span><span class=nt>html</span><span class=p></span><span class=p>&gt;</span>
 <span class=p>&lt;</span><span class=nt>head</span><span class=p></span><span class=p>&gt;</span>
     <span class=p>&lt;</span><span class=nt>style</span> <span class=na>type</span><span class=o>=</span><span class=s>&#34;text/css&#34;</span><span class=p></span><span class=p>&gt;</span>
         <span class=o>*</span><span class=o>,</span>
