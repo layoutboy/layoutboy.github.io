@@ -14,7 +14,7 @@
         <span class=p>}</span>
     <span class=p>}</span>
 <span class=p>}</span>
-</code></pre></div><p>到了 iOS13 增加了多窗口模式，Window 的初始化由原来的 <code>AppDelegate</code> 改到了新的 <code>SceneDelegate</code>，为了兼容之前的系统，Window 的初始化一般都这么写：</p><div class=highlight><pre class=chroma><code class=language-swift data-lang=swift><span class=p>@</span><span class=n>available</span><span class=p>(</span><span class=n>iOS</span> <span class=mf>13.0</span><span class=p>,</span> <span class=o>*</span><span class=p>)</span>
+</code></pre></div><p>到了 iOS13 增加了多窗口模式，Window 的初始化由原来的 <code>AppDelegate</code> 改到了新的 <code>SceneDelegate</code>。</p><p>为了兼容之前的系统，Window 的初始化一般都这么写：</p><div class=highlight><pre class=chroma><code class=language-swift data-lang=swift><span class=p>@</span><span class=n>available</span><span class=p>(</span><span class=n>iOS</span> <span class=mf>13.0</span><span class=p>,</span> <span class=o>*</span><span class=p>)</span>
 <span class=kd>class</span> <span class=nc>SceneDelegate</span><span class=p>:</span> <span class=n>UIResponder</span><span class=p>,</span> <span class=n>UIWindowSceneDelegate</span> <span class=p>{</span>
 
     <span class=kd>var</span> <span class=nv>window</span><span class=p>:</span> <span class=n>UIWindow</span><span class=p>?</span>
