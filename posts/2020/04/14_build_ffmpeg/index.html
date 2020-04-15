@@ -25,7 +25,7 @@ tar -jxvf ./zvbi-0.2.35.tar.bz2
 <span class=nb>cd</span> ./zvbi-0.2.35
 ./configure --prefix<span class=o>=</span>/usr/local --disable-shared
 make <span class=o>&amp;&amp;</span> make install
-</code></pre></div><p><code>PKG_CONFIG_PATH=/usr/local/lib/pkgconfig</code></p></li></ul><h3 id=支持-fdk-aac>支持 FDK-AAC</h3><p>FFMpeg 增加配置参数：<code>--enable-nonfree --enable-libfdk-aa</code></p><p><code>brew install fdk-aac</code></p><h3 id=支持-tls-openssl>支持 TLS （OpenSSL）</h3><p>FFMpeg 增加配置参数：<code>--enable-openssl --extra-cflags="-I/usr/local/opt/openssl/include" --extra-ldflags="-L/usr/local/opt/openssl/lib"</code></p><p><code>PKG_CONFIG_PATH=/usr/local/opt/openssl/lib/pkgconfig</code></p><h2 id=tldr>TL;DR</h2><div class=highlight><pre class=chroma><code class=language-shell data-lang=shell><span class=cp>#!/bin/sh
+</code></pre></div><p><code>PKG_CONFIG_PATH=/usr/local/lib/pkgconfig</code></p></li></ul><h3 id=支持-fdk-aac>支持 FDK-AAC</h3><p>FFMpeg 增加配置参数：<code>--enable-nonfree --enable-libfdk-aa</code></p><p><code>brew install fdk-aac</code></p><h3 id=支持-tls-openssl>支持 TLS （OpenSSL）</h3><p>FFMpeg 增加配置参数：<code>--enable-openssl --extra-cflags="-I/usr/local/opt/openssl/include" --extra-ldflags="-L/usr/local/opt/openssl/lib"</code></p><p><code>PKG_CONFIG_PATH=/usr/local/opt/openssl/lib/pkgconfig</code></p><h2 id=buildsh>Build.sh</h2><div class=highlight><pre class=chroma><code class=language-shell data-lang=shell><span class=cp>#!/bin/sh
 </span><span class=cp></span>
 <span class=nb>set</span> -e
 
