@@ -33,12 +33,20 @@ brew install pkg-config openssl svn cmake automake libtool yasm aom libass libbl
 
 <span class=nb>cd</span> /tmp
 
+<span class=k>if</span> <span class=o>[</span> -d ./libmysofa <span class=o>]</span><span class=p>;</span> <span class=k>then</span>
+  rm -rf ./libmysofa
+<span class=k>fi</span>
+
 git clone https://github.com/hoene/libmysofa.git
 <span class=nb>cd</span> ./libmysofa/build
 cmake -DCMAKE_INSTALL_PREFIX<span class=o>=</span>/usr/local -DBUILD_SHARED_LIBS<span class=o>=</span>OFF -DBUILD_TESTS<span class=o>=</span>OFF ..
-make <span class=o>&amp;&amp;</span> make insall
+make install mysofa-static
 
 <span class=nb>cd</span> ../..
+
+<span class=k>if</span> <span class=o>[</span> -d ./shine <span class=o>]</span><span class=p>;</span> <span class=k>then</span>
+  rm -rf ./shine
+<span class=k>fi</span>
 
 git clone https://github.com/toots/shine.git
 <span class=nb>cd</span> ./shine
@@ -48,6 +56,10 @@ make <span class=o>&amp;&amp;</span> make install
 
 <span class=nb>cd</span> ..
 
+<span class=k>if</span> <span class=o>[</span> -d ./vo-amrwbenc-0.1.3 <span class=o>]</span><span class=p>;</span> <span class=k>then</span>
+  rm -rf ./vo-amrwbenc-0.1.3
+<span class=k>fi</span>
+
 curl -O https://iweb.dl.sourceforge.net/project/opencore-amr/vo-amrwbenc/vo-amrwbenc-0.1.3.tar.gz
 tar -zxvf ./vo-amrwbenc-0.1.3.tar.gz
 <span class=nb>cd</span> ./vo-amrwbenc-0.1.3
@@ -56,12 +68,20 @@ make <span class=o>&amp;&amp;</span> make install
 
 <span class=nb>cd</span> ..
 
+<span class=k>if</span> <span class=o>[</span> -d ./xavs <span class=o>]</span><span class=p>;</span> <span class=k>then</span>
+  rm -rf ./xavs
+<span class=k>fi</span>
+
 svn checkout https://svn.code.sf.net/p/xavs/code/trunk xavs
 <span class=nb>cd</span> ./xavs
 ./configure --prefix<span class=o>=</span>/usr/local --host<span class=o>=</span>x86_64-darwin --disable-asm
 make <span class=o>&amp;&amp;</span> make install
 
 <span class=nb>cd</span> ..
+
+<span class=k>if</span> <span class=o>[</span> -d ./zvbi-0.2.35 <span class=o>]</span><span class=p>;</span> <span class=k>then</span>
+  rm -rf ./zvbi-0.2.35
+<span class=k>fi</span>
 
 curl -O https://svwh.dl.sourceforge.net/project/zapping/zvbi/0.2.35/zvbi-0.2.35.tar.bz2
 tar -jxvf ./zvbi-0.2.35.tar.bz2
@@ -72,6 +92,10 @@ make <span class=o>&amp;&amp;</span> make install
 <span class=nb>cd</span> ..
 
 <span class=nv>FFMPEG_VERSION</span><span class=o>=</span>4.2.2
+
+<span class=k>if</span> <span class=o>[</span> -d ./ffmpeg-<span class=si>${</span><span class=nv>FFMPEG_VERSION</span><span class=si>}</span> <span class=o>]</span><span class=p>;</span> <span class=k>then</span>
+  rm -rf ./ffmpeg-<span class=si>${</span><span class=nv>FFMPEG_VERSION</span><span class=si>}</span>
+<span class=k>fi</span>
 
 curl -O https://ffmpeg.org/releases/ffmpeg-<span class=si>${</span><span class=nv>FFMPEG_VERSION</span><span class=si>}</span>.tar.bz2
 tar -jxvf ./ffmpeg-<span class=si>${</span><span class=nv>FFMPEG_VERSION</span><span class=si>}</span>.tar.bz2
