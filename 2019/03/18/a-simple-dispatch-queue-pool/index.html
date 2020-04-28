@@ -1,0 +1,55 @@
+<!doctype html><html lang=zh><meta charset=utf-8><meta name=generator content="Hugo 0.69.0"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name=color-scheme content="light dark"><meta name=supported-color-schemes content="light dark"><title>A simple Dispatch Queue Pool&nbsp;&ndash;&nbsp;页面仔的笔记</title><link rel=stylesheet href=/css/core.min.2b49db4ca9d146c6019483564ed838b837474fb1b7fe75fcfc7f43a6a18580bc7d15e76f60d02f26c3f3d00bdeb42a3d.css integrity=sha384-K0nbTKnRRsYBlINWTtg4uDdHT7G3/nX8/H9DpqGFgLx9FedvYNAvJsPz0AvetCo9><meta name=twitter:card content="summary"><meta name=twitter:title content="A simple Dispatch Queue Pool"><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=manifest href=/site.webmanifest><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><meta name=msapplication-TileColor content="#00a300"><meta name=theme-color content="#ffffff"><body><div class=base-body><section id=header class="site header"><div class="header wrap"><span class="header left-side"><a class="site home" href=/><img class="site logo" src=/apple-touch-icon.png alt><span class="site name">页面仔的笔记</span></a></span>
+<span class="header right-side"><a class="nav item" href=https://github.com/cntrump target=_blank><span class="iconfont icon-logo_github"></span>&nbsp;Github</a></span></div></section><div id=content><div class=article-container><section class="article header"><h1 class="article title">A simple Dispatch Queue Pool</h1><p class="article date">Mar 18, 2019<span class=reading-time> • 预计阅读时间 1 分钟</span></p></section><article class="article markdown-body"><p>I named it <code>MDispatchQueuePool</code>.</p><p>Really easy to use:</p><div class=highlight><pre class=chroma><code class=language-objc data-lang=objc><span class=p>[</span><span class=n>MDispatchQueuePool</span><span class=p>.</span><span class=n>sharedPool</span> <span class=nl>asyncExecute</span><span class=p>:</span><span class=o>^</span><span class=p>{</span>
+    <span class=c1>// put your code here ...
+</span><span class=c1></span><span class=p>}];</span>
+</code></pre></div><p>Here is <code>MDispatchQueuePool.m</code></p><div class=highlight><pre class=chroma><code class=language-objc data-lang=objc><span class=k>@interface</span> <span class=nc>MDispatchQueuePool</span> <span class=p>()</span> <span class=p>{</span>
+    <span class=n>dispatch_queue_t</span> <span class=n>_executionQueue</span><span class=p>;</span>
+    <span class=n>dispatch_queue_t</span> <span class=n>_waitingQueue</span><span class=p>;</span>
+    <span class=n>dispatch_semaphore_t</span> <span class=n>_maximumQueueSemaphore</span><span class=p>;</span>
+<span class=p>}</span>
+
+<span class=k>@end</span>
+
+<span class=k>@implementation</span> <span class=nc>MDispatchQueuePool</span>
+
+<span class=p>+</span> <span class=p>(</span><span class=kt>instancetype</span><span class=p>)</span><span class=nf>sharedPool</span> <span class=p>{</span>
+    <span class=k>static</span> <span class=n>MDispatchQueuePool</span> <span class=o>*</span><span class=n>pool</span> <span class=o>=</span> <span class=nb>nil</span><span class=p>;</span>
+    <span class=k>static</span> <span class=n>dispatch_once_t</span> <span class=n>onceToken</span> <span class=o>=</span> <span class=mi>0</span><span class=p>;</span>
+    <span class=n>dispatch_once</span><span class=p>(</span><span class=o>&amp;</span><span class=n>onceToken</span><span class=p>,</span> <span class=o>^</span><span class=p>{</span>
+        <span class=n>pool</span> <span class=o>=</span> <span class=p>[[</span><span class=nb>self</span> <span class=n>alloc</span><span class=p>]</span> <span class=n>init</span><span class=p>];</span>
+    <span class=p>});</span>
+    
+    <span class=k>return</span> <span class=n>pool</span><span class=p>;</span>
+<span class=p>}</span>
+
+<span class=p>-</span> <span class=p>(</span><span class=kt>instancetype</span><span class=p>)</span><span class=nf>init</span> <span class=p>{</span>
+    <span class=k>if</span> <span class=p>(</span><span class=nb>self</span> <span class=o>=</span> <span class=p>[</span><span class=nb>super</span> <span class=n>init</span><span class=p>])</span> <span class=p>{</span>
+        <span class=n>_executionQueue</span> <span class=o>=</span> <span class=n>dispatch_queue_create</span><span class=p>(</span><span class=s>&#34;queue.exec.MDispatchQueuePool&#34;</span><span class=p>,</span> <span class=n>DISPATCH_QUEUE_CONCURRENT</span><span class=p>);</span>
+        <span class=n>_waitingQueue</span> <span class=o>=</span> <span class=n>dispatch_queue_create</span><span class=p>(</span><span class=s>&#34;queue.wait.MDispatchQueuePool&#34;</span><span class=p>,</span> <span class=n>DISPATCH_QUEUE_SERIAL</span><span class=p>);</span>
+        <span class=n>dispatch_set_target_queue</span><span class=p>(</span><span class=n>_executionQueue</span><span class=p>,</span> <span class=n>dispatch_get_global_queue</span><span class=p>(</span><span class=n>DISPATCH_QUEUE_PRIORITY_HIGH</span><span class=p>,</span> <span class=mi>0</span><span class=p>));</span>
+        <span class=n>dispatch_set_target_queue</span><span class=p>(</span><span class=n>_waitingQueue</span><span class=p>,</span> <span class=n>dispatch_get_global_queue</span><span class=p>(</span><span class=n>DISPATCH_QUEUE_PRIORITY_DEFAULT</span><span class=p>,</span> <span class=mi>0</span><span class=p>));</span>
+        
+        <span class=n>NSUInteger</span> <span class=n>processorCount</span> <span class=o>=</span> <span class=n>MAX</span><span class=p>(</span><span class=n>NSProcessInfo</span><span class=p>.</span><span class=n>processInfo</span><span class=p>.</span><span class=n>processorCount</span><span class=p>,</span> <span class=mi>2</span><span class=p>);</span>
+        <span class=n>_maximumQueueSemaphore</span> <span class=o>=</span> <span class=n>dispatch_semaphore_create</span><span class=p>(</span><span class=n>processorCount</span><span class=p>);</span>
+    <span class=p>}</span>
+    
+    <span class=k>return</span> <span class=nb>self</span><span class=p>;</span>
+<span class=p>}</span>
+
+<span class=p>-</span> <span class=p>(</span><span class=kt>void</span><span class=p>)</span><span class=nf>asyncExecute:</span><span class=p>(</span><span class=n>dispatch_block_t</span><span class=p>)</span><span class=nv>block</span> <span class=p>{</span>
+    <span class=k>if</span> <span class=p>(</span><span class=o>!</span><span class=n>block</span><span class=p>)</span> <span class=p>{</span>
+        <span class=k>return</span><span class=p>;</span>
+    <span class=p>}</span>
+    
+    <span class=n>dispatch_block_t</span> <span class=n>blockCopy</span> <span class=o>=</span> <span class=p>[</span><span class=n>block</span> <span class=k>copy</span><span class=p>];</span>
+    <span class=n>dispatch_async</span><span class=p>(</span><span class=n>_waitingQueue</span><span class=p>,</span> <span class=o>^</span><span class=p>{</span>
+        <span class=n>dispatch_semaphore_wait</span><span class=p>(</span><span class=nb>self</span><span class=o>-&gt;</span><span class=n>_maximumQueueSemaphore</span><span class=p>,</span> <span class=n>DISPATCH_TIME_FOREVER</span><span class=p>);</span>
+        <span class=n>dispatch_async</span><span class=p>(</span><span class=nb>self</span><span class=o>-&gt;</span><span class=n>_executionQueue</span><span class=p>,</span> <span class=o>^</span> <span class=p>{</span>
+            <span class=n>blockCopy</span><span class=p>();</span>
+            <span class=n>dispatch_semaphore_signal</span><span class=p>(</span><span class=nb>self</span><span class=o>-&gt;</span><span class=n>_maximumQueueSemaphore</span><span class=p>);</span>
+        <span class=p>});</span>
+    <span class=p>});</span>
+<span class=p>}</span>
+
+<span class=k>@end</span>
+</code></pre></div></article></div><section class="article navigation"><p><a class=link href=/2019/03/21/build-llvm-8-on-macos/><span class=li>&larr;</span>build LLVM 8 on macOS</a></p><p><a class=link href=/2019/03/13/build-llvm-for-macos/><span class=li>&rarr;</span>Build LLVM for macOS</a></p></section></div><section id=footer class=footer><div class=footer-wrap><p class=copyright>&copy;2020 LayoutBoy.</p><p class=powerby><span>Powered by </span><a href=https://gohugo.io target=_blank>Hugo</a><span> and the </span><a href=https://themes.gohugo.io/hugo-notepadium/ target=_blank>Notepadium</a></p></div></section><script type=application/javascript>var doNotTrack=false;if(!doNotTrack){window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;ga('create','UA-155172933-1','auto');ga('send','pageview');}</script><script async src=https://www.google-analytics.com/analytics.js></script></div></body></html>

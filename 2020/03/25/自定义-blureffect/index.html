@@ -1,0 +1,72 @@
+<!doctype html><html lang=zh><meta charset=utf-8><meta name=generator content="Hugo 0.69.0"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name=color-scheme content="light dark"><meta name=supported-color-schemes content="light dark"><title>自定义 BlurEffect&nbsp;&ndash;&nbsp;页面仔的笔记</title><link rel=stylesheet href=/css/core.min.2b49db4ca9d146c6019483564ed838b837474fb1b7fe75fcfc7f43a6a18580bc7d15e76f60d02f26c3f3d00bdeb42a3d.css integrity=sha384-K0nbTKnRRsYBlINWTtg4uDdHT7G3/nX8/H9DpqGFgLx9FedvYNAvJsPz0AvetCo9><meta name=twitter:card content="summary"><meta name=twitter:title content="自定义 BlurEffect"><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=manifest href=/site.webmanifest><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><meta name=msapplication-TileColor content="#00a300"><meta name=theme-color content="#ffffff"><body><div class=base-body><section id=header class="site header"><div class="header wrap"><span class="header left-side"><a class="site home" href=/><img class="site logo" src=/apple-touch-icon.png alt><span class="site name">页面仔的笔记</span></a></span>
+<span class="header right-side"><a class="nav item" href=https://github.com/cntrump target=_blank><span class="iconfont icon-logo_github"></span>&nbsp;Github</a></span></div></section><div id=content><div class=article-container><section class="article header"><h1 class="article title">自定义 BlurEffect</h1><p class="article date">Mar 25, 2020<span class=reading-time> • 预计阅读时间 1 分钟</span></p></section><article class="article markdown-body"><p>系统提供的 UIBlurEffect 毛玻璃效果不能调整参数，只能选择内置的几个效果。</p><p>要实现自定义的毛玻璃效果，需要使用私有类 <code>_UICustomBlurEffect</code>，虽然没有文档但是大牛们已经研究出来使用方法了，我做了一点微小的封装提高便利性。</p><div class=highlight><pre class=chroma><code class=language-swift data-lang=swift><span class=kd>import</span> <span class=nc>UIKit</span>
+
+<span class=kd>typealias</span> <span class=n>CustomBlurEffectKey</span> <span class=p>=</span> <span class=nb>String</span>
+
+<span class=kd>private</span> <span class=kd>let</span> <span class=nv>colorTintKey</span><span class=p>:</span> <span class=n>CustomBlurEffectKey</span> <span class=p>=</span> <span class=s>&#34;colorTint&#34;</span>
+<span class=kd>private</span> <span class=kd>let</span> <span class=nv>colorTintAlphaKey</span><span class=p>:</span> <span class=n>CustomBlurEffectKey</span> <span class=p>=</span> <span class=s>&#34;colorTintAlpha&#34;</span>
+<span class=kd>private</span> <span class=kd>let</span> <span class=nv>blurRadiusKey</span><span class=p>:</span> <span class=n>CustomBlurEffectKey</span> <span class=p>=</span> <span class=s>&#34;blurRadius&#34;</span>
+<span class=kd>private</span> <span class=kd>let</span> <span class=nv>blurScaleKey</span><span class=p>:</span> <span class=n>CustomBlurEffectKey</span> <span class=p>=</span> <span class=s>&#34;scale&#34;</span>
+
+<span class=kr>@objc</span> <span class=kd>public</span> <span class=kd>class</span> <span class=nc>CustomBlurEffectView</span><span class=p>:</span> <span class=n>UIVisualEffectView</span> <span class=p>{</span>
+
+    <span class=kr>@objc</span> <span class=kd>public</span> <span class=kd>var</span> <span class=nv>colorTint</span><span class=p>:</span> <span class=n>UIColor</span><span class=p>?</span> <span class=p>{</span>
+        <span class=kr>get</span> <span class=p>{</span>
+            <span class=k>return</span> <span class=n>blurValue</span><span class=p>(</span><span class=n>forKey</span><span class=p>:</span> <span class=n>colorTintKey</span><span class=p>)</span> <span class=k>as</span><span class=p>?</span> <span class=n>UIColor</span>
+        <span class=p>}</span>
+
+        <span class=kr>set</span> <span class=p>{</span>
+            <span class=n>setBlurValue</span><span class=p>(</span><span class=n>newValue</span><span class=p>,</span> <span class=n>forKey</span><span class=p>:</span> <span class=n>colorTintKey</span><span class=p>)</span>
+        <span class=p>}</span>
+    <span class=p>}</span>
+
+    <span class=kr>@objc</span> <span class=kd>public</span> <span class=kd>var</span> <span class=nv>colorTintAlpha</span><span class=p>:</span> <span class=n>CGFloat</span> <span class=p>{</span>
+        <span class=kr>get</span> <span class=p>{</span>
+            <span class=k>return</span> <span class=n>blurValue</span><span class=p>(</span><span class=n>forKey</span><span class=p>:</span> <span class=n>colorTintAlphaKey</span><span class=p>)</span> <span class=k>as</span><span class=p>?</span> <span class=n>CGFloat</span> <span class=p>??</span> <span class=mi>0</span>
+        <span class=p>}</span>
+
+        <span class=kr>set</span> <span class=p>{</span>
+            <span class=n>setBlurValue</span><span class=p>(</span><span class=n>newValue</span><span class=p>,</span> <span class=n>forKey</span><span class=p>:</span> <span class=n>colorTintAlphaKey</span><span class=p>)</span>
+        <span class=p>}</span>
+    <span class=p>}</span>
+
+    <span class=kr>@objc</span> <span class=kd>public</span> <span class=kd>var</span> <span class=nv>blurRadius</span><span class=p>:</span> <span class=n>CGFloat</span> <span class=p>{</span>
+        <span class=kr>get</span> <span class=p>{</span>
+            <span class=k>return</span> <span class=n>blurValue</span><span class=p>(</span><span class=n>forKey</span><span class=p>:</span> <span class=n>blurRadiusKey</span><span class=p>)</span> <span class=k>as</span><span class=p>?</span> <span class=n>CGFloat</span> <span class=p>??</span> <span class=mi>0</span>
+        <span class=p>}</span>
+
+        <span class=kr>set</span> <span class=p>{</span>
+            <span class=n>setBlurValue</span><span class=p>(</span><span class=n>newValue</span><span class=p>,</span> <span class=n>forKey</span><span class=p>:</span> <span class=n>blurRadiusKey</span><span class=p>)</span>
+        <span class=p>}</span>
+    <span class=p>}</span>
+
+    <span class=kr>@objc</span> <span class=kd>public</span> <span class=kd>var</span> <span class=nv>blurScale</span><span class=p>:</span> <span class=n>CGFloat</span> <span class=p>{</span>
+        <span class=kr>get</span> <span class=p>{</span>
+            <span class=k>return</span> <span class=n>blurValue</span><span class=p>(</span><span class=n>forKey</span><span class=p>:</span> <span class=n>blurScaleKey</span><span class=p>)</span> <span class=k>as</span><span class=p>?</span> <span class=n>CGFloat</span> <span class=p>??</span> <span class=mi>0</span>
+        <span class=p>}</span>
+
+        <span class=kr>set</span> <span class=p>{</span>
+            <span class=n>setBlurValue</span><span class=p>(</span><span class=n>newValue</span><span class=p>,</span> <span class=n>forKey</span><span class=p>:</span> <span class=n>blurScaleKey</span><span class=p>)</span>
+        <span class=p>}</span>
+    <span class=p>}</span>
+
+    <span class=kd>private</span> <span class=kd>var</span> <span class=nv>customBlurEffect</span><span class=p>:</span> <span class=n>UIBlurEffect</span><span class=p>?</span>
+
+    <span class=kr>@objc</span> <span class=kd>public</span> <span class=kr>convenience</span> <span class=kd>init</span><span class=p>()</span> <span class=p>{</span>
+        <span class=kd>let</span> <span class=nv>customBlurEffect</span> <span class=p>=</span> <span class=p>(</span><span class=n>NSClassFromString</span><span class=p>(</span><span class=s>&#34;_UICustomBlurEffect&#34;</span><span class=p>)</span> <span class=k>as</span><span class=p>!</span> <span class=n>UIBlurEffect</span><span class=p>.</span><span class=kr>Type</span><span class=p>).</span><span class=kd>init</span><span class=p>()</span>
+        <span class=kc>self</span><span class=p>.</span><span class=kd>init</span><span class=p>(</span><span class=n>effect</span><span class=p>:</span> <span class=n>customBlurEffect</span><span class=p>)</span>
+
+        <span class=kc>self</span><span class=p>.</span><span class=n>customBlurEffect</span> <span class=p>=</span> <span class=n>customBlurEffect</span>
+        <span class=n>blurScale</span> <span class=p>=</span> <span class=mi>1</span>
+    <span class=p>}</span>
+
+    <span class=kd>private</span> <span class=kd>func</span> <span class=nf>blurValue</span><span class=p>(</span><span class=n>forKey</span> <span class=n>key</span><span class=p>:</span> <span class=nb>String</span><span class=p>)</span> <span class=p>-&gt;</span> <span class=nb>Any</span><span class=p>?</span> <span class=p>{</span>
+        <span class=k>return</span> <span class=n>customBlurEffect</span><span class=p>?.</span><span class=n>value</span><span class=p>(</span><span class=n>forKey</span><span class=p>:</span> <span class=n>key</span><span class=p>)</span>
+    <span class=p>}</span>
+
+    <span class=kd>private</span> <span class=kd>func</span> <span class=nf>setBlurValue</span><span class=p>(</span><span class=kc>_</span> <span class=n>value</span><span class=p>:</span> <span class=nb>Any</span><span class=p>?,</span> <span class=n>forKey</span> <span class=n>key</span><span class=p>:</span> <span class=nb>String</span><span class=p>)</span> <span class=p>{</span>
+        <span class=n>customBlurEffect</span><span class=p>?.</span><span class=n>setValue</span><span class=p>(</span><span class=n>value</span><span class=p>,</span> <span class=n>forKey</span><span class=p>:</span> <span class=n>key</span><span class=p>)</span>
+        <span class=n>effect</span> <span class=p>=</span> <span class=n>customBlurEffect</span>
+    <span class=p>}</span>
+<span class=p>}</span>
+</code></pre></div></article><section class="article labels"><a class=tag href=/tags/ios/>iOS</a></section></div><section class="article navigation"><p><a class=link href=/2020/04/10/openssl-%E5%88%9B%E5%BB%BA%E8%87%AA%E7%AD%BE%E5%90%8D-ssl-%E8%AF%81%E4%B9%A6/><span class=li>&larr;</span>OpenSSL 创建自签名 SSL 证书</a></p><p><a class=link href=/2020/03/06/%E6%90%9C%E7%B4%A2%E9%A1%B9%E7%9B%AE%E9%87%8C%E7%9A%84%E7%A7%81%E6%9C%89-api/><span class=li>&rarr;</span>搜索项目里的私有 API</a></p></section></div><section id=footer class=footer><div class=footer-wrap><p class=copyright>&copy;2020 LayoutBoy.</p><p class=powerby><span>Powered by </span><a href=https://gohugo.io target=_blank>Hugo</a><span> and the </span><a href=https://themes.gohugo.io/hugo-notepadium/ target=_blank>Notepadium</a></p></div></section><script type=application/javascript>var doNotTrack=false;if(!doNotTrack){window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;ga('create','UA-155172933-1','auto');ga('send','pageview');}</script><script async src=https://www.google-analytics.com/analytics.js></script></div></body></html>
