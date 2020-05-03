@@ -92,15 +92,15 @@ make <span class=o>&amp;&amp;</span> make install
 
 <span class=nb>cd</span> ..
 
-<span class=nv>FFmpeg_VERSION</span><span class=o>=</span>4.2.2
+<span class=nv>FFMPEG_VERSION</span><span class=o>=</span>4.2.2
 
-<span class=k>if</span> <span class=o>[</span> -d ./FFmpeg-<span class=si>${</span><span class=nv>FFmpeg_VERSION</span><span class=si>}</span> <span class=o>]</span><span class=p>;</span> <span class=k>then</span>
-  rm -rf ./FFmpeg-<span class=si>${</span><span class=nv>FFmpeg_VERSION</span><span class=si>}</span>
+<span class=k>if</span> <span class=o>[</span> -d ./FFmpeg-<span class=si>${</span><span class=nv>FFMPEG_VERSION</span><span class=si>}</span> <span class=o>]</span><span class=p>;</span> <span class=k>then</span>
+  rm -rf ./FFmpeg-<span class=si>${</span><span class=nv>FFMPEG_VERSION</span><span class=si>}</span>
 <span class=k>fi</span>
 
-curl -O https://FFmpeg.org/releases/FFmpeg-<span class=si>${</span><span class=nv>FFmpeg_VERSION</span><span class=si>}</span>.tar.bz2
-tar -jxvf ./FFmpeg-<span class=si>${</span><span class=nv>FFmpeg_VERSION</span><span class=si>}</span>.tar.bz2
-<span class=nb>cd</span> ./FFmpeg-<span class=si>${</span><span class=nv>FFmpeg_VERSION</span><span class=si>}</span>
+curl -O https://FFmpeg.org/releases/FFmpeg-<span class=si>${</span><span class=nv>FFMPEG_VERSION</span><span class=si>}</span>.tar.bz2
+tar -jxvf ./FFmpeg-<span class=si>${</span><span class=nv>FFMPEG_VERSION</span><span class=si>}</span>.tar.bz2
+<span class=nb>cd</span> ./FFmpeg-<span class=si>${</span><span class=nv>FFMPEG_VERSION</span><span class=si>}</span>
 
 <span class=nb>export</span> <span class=nv>PKG_CONFIG_PATH</span><span class=o>=</span>/usr/local/opt/openssl/lib/pkgconfig
 
