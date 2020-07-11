@@ -5,7 +5,24 @@
 </span><span class=cp></span><span class=nb>set</span> -e
 
 sudo certbot --duplicate certonly -d <span class=s2>&#34;*.</span><span class=nv>$1</span><span class=s2>&#34;</span> -d <span class=s2>&#34;</span><span class=nv>$1</span><span class=s2>&#34;</span> --manual --preferred-challenges dns-01 --server https://acme-v02.api.letsencrypt.org/directory
-</code></pre></div><p><code>get-cert.sh lvvme.com</code></p><p>根据提示配置好域名的 DNS，需要配置<strong>两个 TEXT 类型</strong>的记录。</p><p>都完成以后，证书就保存在 <code>/etc/letsencrypt/live/lvvme.com</code> 里了：</p><pre><code class=language-log data-lang=log>cert.pem  chain.pem  fullchain.pem  privkey.pem  README
+</code></pre></div><p><code>get-cert.sh lvvme.com</code></p><p>根据提示配置好域名的 DNS，需要配置<strong>两个 TEXT 类型</strong>的记录。</p><p><strong>提示</strong>：一定要确认 TXT 记录已经生效了再继续下一步，否则会失败，一个简单的方法是添加了 TXT 记录以后使用 <code>dig</code> 命令查询：</p><div class=highlight><pre class=chroma><code class=language-shell data-lang=shell>dig txt _acme-challenge.lvvme.com
+</code></pre></div><p>查询结果可以找到 TXT 区段就说明生效了：</p><pre><code class=language-log data-lang=log>
+; &lt;&lt;&gt;&gt; DiG 9.10.6 &lt;&lt;&gt;&gt; txt _acme-challenge.lvvme.com
+;; global options: +cmd
+;; Got answer:
+;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: NOERROR, id: 25452
+;; flags: qr rd ra; QUERY: 1, ANSWER: 2, AUTHORITY: 2, ADDITIONAL: 19
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 4096
+;; QUESTION SECTION:
+;_acme-challenge.lvvme.com.	IN	TXT
+
+;; ANSWER SECTION:
+_acme-challenge.lvvme.com. 600	IN	TXT	&quot;rlCEXLl8gTyv3OjV2oSm7C0A8yeAJF7RkBkbUBo2oJM&quot;
+_acme-challenge.lvvme.com. 600	IN	TXT	&quot;tQk-UWAb6rtbFp8YxCgdWcBBcqRPj5GAhzhL9oxjA00&quot;
+
+</code></pre><p>都完成以后，证书就保存在 <code>/etc/letsencrypt/live/lvvme.com</code> 里了：</p><pre><code class=language-log data-lang=log>cert.pem  chain.pem  fullchain.pem  privkey.pem  README
 </code></pre><p><code>fullchain.pem</code> 和 <code>privkey.pem</code> 就是 Nginx 需要的公钥和私钥。</p><h2 id=配置-nginx>配置 Nginx</h2><p>如果 Nginx 是运行在 Docker 里的话，需要注意 live/lvvme.com 目录里的文件是符号链接，实际文件保存在 <code>archive</code> 目录里：</p><pre><code class=language-log data-lang=log>cert.pem -&gt; ../../archive/lvvme.com/cert1.pem
 chain.pem -&gt; ../../archive/lvvme.com/chain1.pem
 fullchain.pem -&gt; ../../archive/lvvme.com/fullchain1.pem
