@@ -1,0 +1,88 @@
+<!doctype html><html lang=zh><meta charset=utf-8><meta name=generator content="Hugo 0.74.2"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name=color-scheme content="light dark"><meta name=supported-color-schemes content="light dark"><title>扩展 UIButton 支持 spacing 并完美兼容 AutoLayout&nbsp;&ndash;&nbsp;页面仔的笔记</title><link rel=stylesheet href=/css/core.min.a95d1e82cc358fcfc4c26304d00d80603a56a57c82394307367b84bdb3755a3597f5a67e4726884fe02aaf9575c69e29.css integrity=sha384-qV0egsw1j8/EwmME0A2AYDpWpXyCOUMHNnuEvbN1WjWX9aZ+RyaIT+Aqr5V1xp4p><meta name=twitter:card content="summary"><meta name=twitter:title content="扩展 UIButton 支持 spacing 并完美兼容 AutoLayout"><link rel=apple-touch-icon sizes=180x180 href=/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon-16x16.png><link rel=manifest href=/site.webmanifest><link rel=mask-icon href=/safari-pinned-tab.svg color=#5bbad5><meta name=msapplication-TileColor content="#00a300"><meta name=theme-color content="#ffffff"><body><section id=header><div class="header wrap"><span class="header left-side"><a class="site home" href=/><img class="site logo" src=/apple-touch-icon.png alt><span class="site name">页面仔的笔记</span></a></span>
+<span class="header right-side"><a class="nav item" href=/themes/>Themes</a>
+<a class="nav item" href=/dockerhub/><span class="iconfont icon-docker"></span>&nbsp;Docker</a>
+<a class="nav item" href=https://github.com/cntrump target=_blank><span class="iconfont icon-github"></span>&nbsp;Github</a></span></div><div class="site slogan"><span class=title>~ Talk is cheap, show me code ~</span></div></section><section id=content><div class=article-container><section class="article header"><h1 class="article title">扩展 UIButton 支持 spacing 并完美兼容 AutoLayout</h1><p class="article date">Jul 21, 2020<span class=reading-time> • 预计阅读时间 2 分钟</span></p></section><article class="article markdown-body"><p>众所周知，<code>UIButton</code> 是不支持设置图像和文字间距的。</p><p>网上的文章大多数都是通过调节 <code>titleEdgeInsets</code> 和 <code>imageEdgeInsets</code> 达到把图像和文字分开的目的，但是这个方法并不能自动改变按钮的大小，所以带来的问题就是调整了间距之后还需要再计算按钮的大小，而且对于 AutoLayout 无法进行自动适应大小。</p><p>要解决这些痛点，比较合适的方式是对 <code>UIButton</code> 子类化，增加一个 <code>spacing</code> 属性，要设置间距就直接改变 <code>spacing</code> 的值就好了，定义如下：</p><div class=highlight><pre class=chroma><code class=language-objc data-lang=objc><span class=k>@interface</span> <span class=nc>ZUIButton</span> : <span class=nc>UIButton</span>
+
+<span class=k>@property</span><span class=p>(</span><span class=k>nonatomic</span><span class=p>)</span> <span class=n>CGFloat</span> <span class=n>spacing</span><span class=p>;</span>
+
+<span class=k>@end</span>
+</code></pre></div><p>因为增加间距后就改变了按钮的大小，所以还需要同时调整 <code>intrinsicContentSize</code> 和 <code>sizeToFit</code> 的实现，这样就可以完美兼容 AutoLayout 和基于 frame 的手动布局：</p><div class=highlight><pre class=chroma><code class=language-objc data-lang=objc><span class=p>-</span> <span class=p>(</span><span class=n>CGSize</span><span class=p>)</span><span class=nf>intrinsicContentSize</span> <span class=p>{</span>
+    <span class=n>CGSize</span> <span class=n>size</span> <span class=o>=</span> <span class=p>[</span><span class=nb>super</span> <span class=n>intrinsicContentSize</span><span class=p>];</span>
+
+    <span class=n>CGSize</span> <span class=n>imageSize</span> <span class=o>=</span> <span class=nb>self</span><span class=p>.</span><span class=n>currentImage</span><span class=p>.</span><span class=n>size</span><span class=p>;</span>
+    <span class=k>if</span> <span class=p>((</span><span class=nb>self</span><span class=p>.</span><span class=n>currentTitle</span><span class=p>.</span><span class=n>length</span> <span class=o>&gt;</span> <span class=mi>0</span> <span class=o>||</span> <span class=nb>self</span><span class=p>.</span><span class=n>currentAttributedTitle</span><span class=p>.</span><span class=n>length</span> <span class=o>&gt;</span> <span class=mi>0</span><span class=p>)</span> <span class=o>&amp;&amp;</span>
+        <span class=p>(</span><span class=n>imageSize</span><span class=p>.</span><span class=n>width</span> <span class=o>&gt;</span> <span class=mi>0</span> <span class=o>&amp;&amp;</span> <span class=n>imageSize</span><span class=p>.</span><span class=n>height</span> <span class=o>&gt;</span> <span class=mi>0</span><span class=p>))</span> <span class=p>{</span>
+        <span class=n>size</span><span class=p>.</span><span class=n>width</span> <span class=o>+=</span> <span class=n>_spacing</span><span class=p>;</span>
+    <span class=p>}</span>
+
+    <span class=k>return</span> <span class=n>size</span><span class=p>;</span>
+<span class=p>}</span>
+</code></pre></div><div class=highlight><pre class=chroma><code class=language-objc data-lang=objc><span class=p>-</span> <span class=p>(</span><span class=kt>void</span><span class=p>)</span><span class=nf>sizeToFit</span> <span class=p>{</span>
+    <span class=p>[</span><span class=nb>super</span> <span class=n>sizeToFit</span><span class=p>];</span>
+
+    <span class=n>CGRect</span> <span class=n>bounds</span> <span class=o>=</span> <span class=nb>self</span><span class=p>.</span><span class=n>bounds</span><span class=p>;</span>
+    <span class=n>bounds</span><span class=p>.</span><span class=n>size</span> <span class=o>=</span> <span class=p>[</span><span class=nb>self</span> <span class=n>intrinsicContentSize</span><span class=p>];</span>
+    <span class=nb>self</span><span class=p>.</span><span class=n>bounds</span> <span class=o>=</span> <span class=n>bounds</span><span class=p>;</span>
+
+    <span class=n>CGFloat</span> <span class=n>offset</span> <span class=o>=</span> <span class=mi>0</span><span class=p>;</span>
+    <span class=n>CGSize</span> <span class=n>imageSize</span> <span class=o>=</span> <span class=nb>self</span><span class=p>.</span><span class=n>currentImage</span><span class=p>.</span><span class=n>size</span><span class=p>;</span>
+    <span class=k>if</span> <span class=p>((</span><span class=nb>self</span><span class=p>.</span><span class=n>currentTitle</span><span class=p>.</span><span class=n>length</span> <span class=o>&gt;</span> <span class=mi>0</span> <span class=o>||</span> <span class=nb>self</span><span class=p>.</span><span class=n>currentAttributedTitle</span><span class=p>.</span><span class=n>length</span> <span class=o>&gt;</span> <span class=mi>0</span><span class=p>)</span> <span class=o>&amp;&amp;</span>
+        <span class=p>(</span><span class=n>imageSize</span><span class=p>.</span><span class=n>width</span> <span class=o>&gt;</span> <span class=mi>0</span> <span class=o>&amp;&amp;</span> <span class=n>imageSize</span><span class=p>.</span><span class=n>height</span> <span class=o>&gt;</span> <span class=mi>0</span><span class=p>))</span> <span class=p>{</span>
+        <span class=n>offset</span> <span class=o>=</span> <span class=n>_spacing</span> <span class=o>*</span> <span class=mf>0.5</span><span class=p>;</span>
+    <span class=p>}</span>
+
+    <span class=n>CGPoint</span> <span class=n>center</span> <span class=o>=</span> <span class=nb>self</span><span class=p>.</span><span class=n>center</span><span class=p>;</span>
+    <span class=n>center</span><span class=p>.</span><span class=n>x</span> <span class=o>+=</span> <span class=n>offset</span><span class=p>;</span>
+    <span class=nb>self</span><span class=p>.</span><span class=n>center</span> <span class=o>=</span> <span class=n>center</span><span class=p>;</span>
+<span class=p>}</span>
+</code></pre></div><p>这样子类化后的 <code>ZUIButton</code> 就可以很方便通过 <code>spacing</code> 设置间距。</p><p>再进一步做扩展：支持设置图像和文字的位置。默认情况下按钮只能是图像左文字右的样式，有时候会遇到需要文字左图像右的场景，就无法满足了。</p><p>继续对 <code>ZUIButton</code> 扩展，支持文字左图像右的显示样式。</p><p>图像和文字的显示区域是由 <code>imageRectForContentRect</code> 和 <code>titleRectForContentRect</code> 决定的，只要继承这两个方法，在内部调换一下坐标就可以了，很简单。</p><p>增加一个枚举类型 <code>ZUIButtonDirection</code> 用于设置显示方向：</p><div class=highlight><pre class=chroma><code class=language-objc data-lang=objc><span class=k>typedef</span> <span class=nf>NS_ENUM</span><span class=p>(</span><span class=n>NSInteger</span><span class=p>,</span> <span class=n>ZUIButtonDirection</span><span class=p>)</span> <span class=p>{</span>
+    <span class=n>ZUIButtonDirectionRow</span> <span class=o>=</span> <span class=mi>0</span><span class=p>,</span>    <span class=c1>// 默认样式：图像左，文字右
+</span><span class=c1></span>    <span class=n>ZUIButtonDirectionRowReverse</span>  <span class=c1>// 文字左，图像右
+</span><span class=c1></span><span class=p>};</span>
+</code></pre></div><p>新增一个设置显示方向的属性：<code>direction</code></p><div class=highlight><pre class=chroma><code class=language-objc data-lang=objc><span class=k>@interface</span> <span class=nc>ZUIButton</span> : <span class=nc>UIButton</span>
+
+<span class=k>@property</span><span class=p>(</span><span class=k>nonatomic</span><span class=p>)</span> <span class=n>CGFloat</span> <span class=n>spacing</span><span class=p>;</span>
+
+<span class=k>@property</span><span class=p>(</span><span class=k>nonatomic</span><span class=p>)</span> <span class=n>ZUIButtonDirection</span> <span class=n>direction</span><span class=p>;</span>
+
+<span class=k>@end</span>
+</code></pre></div><p>根据 <code>direction</code> 的设置重新调整图像和文字的位置：</p><div class=highlight><pre class=chroma><code class=language-objc data-lang=objc><span class=p>-</span> <span class=p>(</span><span class=n>CGRect</span><span class=p>)</span><span class=nf>imageRectForContentRect:</span><span class=p>(</span><span class=n>CGRect</span><span class=p>)</span><span class=nv>contentRect</span> <span class=p>{</span>
+    <span class=n>CGRect</span> <span class=n>rect</span> <span class=o>=</span> <span class=p>[</span><span class=nb>super</span> <span class=nl>imageRectForContentRect</span><span class=p>:</span><span class=n>contentRect</span><span class=p>];</span>
+
+    <span class=k>if</span> <span class=p>(</span><span class=n>_direction</span> <span class=o>==</span> <span class=n>ZUIButtonDirectionRowReverse</span><span class=p>)</span> <span class=p>{</span>
+        <span class=n>CGRect</span> <span class=n>titleRect</span> <span class=o>=</span> <span class=p>[</span><span class=nb>super</span> <span class=nl>titleRectForContentRect</span><span class=p>:</span><span class=n>contentRect</span><span class=p>];</span>
+        <span class=n>titleRect</span><span class=p>.</span><span class=n>origin</span><span class=p>.</span><span class=n>x</span> <span class=o>=</span> <span class=n>rect</span><span class=p>.</span><span class=n>origin</span><span class=p>.</span><span class=n>x</span><span class=p>;</span>
+        <span class=n>rect</span><span class=p>.</span><span class=n>origin</span><span class=p>.</span><span class=n>x</span> <span class=o>=</span> <span class=n>CGRectGetMaxX</span><span class=p>(</span><span class=n>titleRect</span><span class=p>);</span>
+    <span class=p>}</span>
+
+    <span class=k>if</span> <span class=p>(</span><span class=nb>self</span><span class=p>.</span><span class=n>currentTitle</span><span class=p>.</span><span class=n>length</span> <span class=o>&gt;</span> <span class=mi>0</span> <span class=o>||</span> <span class=nb>self</span><span class=p>.</span><span class=n>currentAttributedTitle</span><span class=p>.</span><span class=n>length</span> <span class=o>&gt;</span> <span class=mi>0</span><span class=p>)</span> <span class=p>{</span>
+        <span class=k>if</span> <span class=p>(</span><span class=n>_direction</span> <span class=o>==</span> <span class=n>ZUIButtonDirectionRow</span><span class=p>)</span> <span class=p>{</span>
+            <span class=n>rect</span><span class=p>.</span><span class=n>origin</span><span class=p>.</span><span class=n>x</span> <span class=o>-=</span> <span class=n>_spacing</span> <span class=o>*</span> <span class=mf>0.5</span><span class=p>;</span>
+        <span class=p>}</span> <span class=k>else</span> <span class=k>if</span> <span class=p>(</span><span class=n>_direction</span> <span class=o>==</span> <span class=n>ZUIButtonDirectionRowReverse</span><span class=p>)</span> <span class=p>{</span>
+            <span class=n>rect</span><span class=p>.</span><span class=n>origin</span><span class=p>.</span><span class=n>x</span> <span class=o>+=</span> <span class=n>_spacing</span> <span class=o>*</span> <span class=mf>0.5</span><span class=p>;</span>
+        <span class=p>}</span>
+    <span class=p>}</span>
+
+    <span class=k>return</span> <span class=n>rect</span><span class=p>;</span>
+<span class=p>}</span>
+</code></pre></div><div class=highlight><pre class=chroma><code class=language-objc data-lang=objc><span class=p>-</span> <span class=p>(</span><span class=n>CGRect</span><span class=p>)</span><span class=nf>titleRectForContentRect:</span><span class=p>(</span><span class=n>CGRect</span><span class=p>)</span><span class=nv>contentRect</span> <span class=p>{</span>
+    <span class=n>CGRect</span> <span class=n>rect</span> <span class=o>=</span> <span class=p>[</span><span class=nb>super</span> <span class=nl>titleRectForContentRect</span><span class=p>:</span><span class=n>contentRect</span><span class=p>];</span>
+
+    <span class=k>if</span> <span class=p>(</span><span class=n>_direction</span> <span class=o>==</span> <span class=n>ZUIButtonDirectionRowReverse</span><span class=p>)</span> <span class=p>{</span>
+        <span class=n>CGRect</span> <span class=n>imageRect</span> <span class=o>=</span> <span class=p>[</span><span class=nb>super</span> <span class=nl>imageRectForContentRect</span><span class=p>:</span><span class=n>contentRect</span><span class=p>];</span>
+        <span class=n>rect</span><span class=p>.</span><span class=n>origin</span><span class=p>.</span><span class=n>x</span> <span class=o>=</span> <span class=n>imageRect</span><span class=p>.</span><span class=n>origin</span><span class=p>.</span><span class=n>x</span><span class=p>;</span>
+    <span class=p>}</span>
+
+    <span class=n>CGSize</span> <span class=n>imageSize</span> <span class=o>=</span> <span class=nb>self</span><span class=p>.</span><span class=n>currentImage</span><span class=p>.</span><span class=n>size</span><span class=p>;</span>
+    <span class=k>if</span> <span class=p>(</span><span class=n>imageSize</span><span class=p>.</span><span class=n>width</span> <span class=o>&gt;</span> <span class=mi>0</span> <span class=o>&amp;&amp;</span> <span class=n>imageSize</span><span class=p>.</span><span class=n>height</span> <span class=o>&gt;</span> <span class=mi>0</span><span class=p>)</span> <span class=p>{</span>
+        <span class=k>if</span> <span class=p>(</span><span class=n>_direction</span> <span class=o>==</span> <span class=n>ZUIButtonDirectionRow</span><span class=p>)</span> <span class=p>{</span>
+            <span class=n>rect</span><span class=p>.</span><span class=n>origin</span><span class=p>.</span><span class=n>x</span> <span class=o>+=</span> <span class=n>_spacing</span> <span class=o>*</span> <span class=mf>0.5</span><span class=p>;</span>
+        <span class=p>}</span> <span class=k>else</span> <span class=k>if</span> <span class=p>(</span><span class=n>_direction</span> <span class=o>==</span> <span class=n>ZUIButtonDirectionRowReverse</span><span class=p>)</span> <span class=p>{</span>
+            <span class=n>rect</span><span class=p>.</span><span class=n>origin</span><span class=p>.</span><span class=n>x</span> <span class=o>-=</span> <span class=n>_spacing</span> <span class=o>*</span> <span class=mf>0.5</span><span class=p>;</span>
+        <span class=p>}</span>
+    <span class=p>}</span>
+
+    <span class=k>return</span> <span class=n>rect</span><span class=p>;</span>
+<span class=p>}</span>
+</code></pre></div><p>现在，<code>ZUIButton</code> 用起来就很方便了。</p></article><section class="article labels"><a class=tag href=/tags/ios/>iOS</a></section><section class="article license">版权声明：如果转发请带上本文链接和注明来源。</section><section class="article author"><img class=avatar src=/img/avatar.jpg alt><p class=name>lvv.me</p><div class=bio><strong>iOS/macOS</strong> Developer</div><div class=details><a class=item href=https://github.com/cntrump target=_blank><span class="iconfont icon-github"></span>&nbsp;cntrump</a><a class=item href=https://hub.docker.com/u/cntrump target=_blank><span class="iconfont icon-docker"></span>&nbsp;cntrump</a></div></section></div><div class="article bottom"><section class="article navigation"><p><a class=link href=/posts/2020/07/14_coretext_notes/><span class="iconfont icon-article"></span>CoreText note: Client requested name .SFUI-Regular</a></p></section></div></section><section id=footer><div class=footer-wrap><p class=copyright>&copy;2020 lvvme.</p><p class=powerby><span>Powered&nbsp;by&nbsp;</span><a href=https://gohugo.io target=_blank>Hugo</a><span>&nbsp;&&nbsp;</span><a href=https://themes.gohugo.io/hugo-notepadium/ target=_blank>Notepadium</a></p><p style=font-size:12px><a href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=44030502005645" target=_blank rel="noopener noreferrer"><img style=vertical-align:text-bottom;width:15px;height:15px src=/assets/img/gonganlogo.png>粤公网安备 44030502005645号</a>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href=http://www.beian.miit.gov.cn/ target=_blank rel="noopener noreferrer">粤ICP备20056596号-1</a></p></div></section><script type=application/javascript>var doNotTrack=false;if(!doNotTrack){window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;ga('create','UA-155172933-2','auto');ga('send','pageview');}</script><script async src=https://www.google-analytics.com/analytics.js></script></body></html>
